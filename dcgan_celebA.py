@@ -116,7 +116,7 @@ class Generator(nn.Module):
         o4_2 = self.bn4(o4_1)
         o4_3 = F.relu(o4_2)
 
-        output = F.tanh(self.convt5(o4_3))
+        output = torch.tanh(self.convt5(o4_3))
 
         return output
 
@@ -165,7 +165,7 @@ class Discriminator(nn.Module):
         o4_2 = self.bn4(o4_1)
         o4_3 = F.leaky_relu(o4_2,0.2)
 
-        output = F.sigmoid(self.conv5(o4_3))
+        output = torch.sigmoid(self.conv5(o4_3))
 
         return output
 
@@ -175,7 +175,7 @@ class Discriminator(nn.Module):
 netD = Discriminator().to(device)
 # Discriminator Weight Initialization
 netD.apply(weights_init)
-print(netD)
+#print(netD)
 
 
 # %%
@@ -232,12 +232,12 @@ for epoch in range(n_epochs):
         real_data = data[0].to(device)
         b_size = real_data.shape[0]
         label = torch.full((b_size,),real_label,device=device)
-        output = netD(real_data).view(-1)
-        netD_error_real = criterion(output,label)
+        outputr = netD(real_data).view(-1)
+        netD_error_real = criterion(outputr,label)
         ##compute gradient
-        netD_error_real.backward(retain_graph=True)
+        #netD_error_real.backward()
         ## Average output as it will tell how good out Discriminator is. This value should approach to 1.
-        D_real = output.mean().item()
+        D_real = outputr.mean().item()
 
         ## Generate fake images using generator
 
@@ -247,16 +247,17 @@ for epoch in range(n_epochs):
 
         ## Passing Fake Batches
 
-        output = netD(fake_data).view(-1)
-        netD_error_fake = criterion(output,label)
+        outputf = netD(fake_data.detach()).view(-1)
+        netD_error_fake = criterion(outputf,label)
         ##compute gradient (Gradient is additive so network have aggregated gradient values)
-        netD_error_fake.backward(retain_graph=True)
+        #netD_error_fake.backward()
         ## Average output as it will tell how good out Discriminator is. This value should approach to 0.
-        D_fake = output.mean().item()
+        D_fake = outputf.mean().item()
 
         ## Total Discriminator Error
-        netD_error = netD_error_fake + netD_error_real
-
+        netD_error = (netD_error_real + netD_error_fake)
+        with torch.autograd.set_detect_anomaly(True):
+            netD_error.backward()
         ## Update the Discriminator
         optimizerD.step()
 
@@ -264,14 +265,14 @@ for epoch in range(n_epochs):
         ### Generator Update
         
         ## Making Zero Gradient in Start(Remove residual gradient from previous epoch)
-        netG.zero_grad()
+        optimizerG.zero_grad()
 
-        output = netD(fake_data).view(-1)
+        outputf = netD(fake_data).view(-1)
         ## Generator want label to be 1, so error will be considered when discriminator will assign  generated images a non zero value.
         label.fill_(real_label)
-        netG_error = criterion(output,label)
+        netG_error = criterion(outputf,label)
         netG_error.backward(retain_graph=True)
-        DG_fake = output.mean().item()
+        DG_fake = outputf.mean().item()
 
         ## Update the Generator
         optimizerG.step()
