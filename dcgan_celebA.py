@@ -291,18 +291,3 @@ for epoch in range(n_epochs):
 
 
 
-
-
-
-# %%
-real_data = real_batch[0].to(device)
-real_data.shape[0]
-
-
-# %%
-##help(print)
-
-
-# %%
-
-
