@@ -120,6 +120,50 @@ class Generator(nn.Module):
 
         return output
 
+    def layer_output_shape(self):
+
+        with torch.no_grad():
+            dummy = torch.zeros([1,n_channel,1,1],device = device)
+            print(dummy.shape)
+            dummy = self.convt1(dummy)
+            print(dummy.shape)
+            dummy = self.bn1(dummy)
+            print(dummy.shape)
+            dummy = F.relu(dummy)
+            print(dummy.shape)
+            print("---------------")
+            
+            dummy = self.convt2(dummy)
+            print(dummy.shape)
+            dummy = self.bn2(dummy)
+            print(dummy.shape)
+            dummy = F.relu(dummy)
+            print(dummy.shape)
+            print("---------------")
+
+            dummy = self.convt3(dummy)
+            print(dummy.shape)
+            dummy = self.bn3(dummy)
+            print(dummy.shape)
+            dummy = F.relu(dummy)
+            print(dummy.shape)
+            print("---------------")
+
+            dummy = self.convt4(dummy)
+            print(dummy.shape)
+            dummy = self.bn4(dummy)
+            print(dummy.shape)
+            dummy = F.relu(dummy)
+            print(dummy.shape)
+            print("---------------")
+
+            dummy = F.tanh(self.convt5(dummy))
+            print(dummy.shape)
+            print("---------------")
+            del dummy
+
+    
+
 
 # %%
 # Generator to GPU
@@ -168,6 +212,50 @@ class Discriminator(nn.Module):
         output = torch.sigmoid(self.conv5(o4_3))
 
         return output
+    
+    def layer_output_shape(self,h,w=None):
+        if w==None:
+            w=h
+        with torch.no_grad():
+            dummy = torch.zeros([1,n_channel,h,w],device=device)
+            print(dummy.shape)
+            dummy = self.conv1(dummy)
+            print(dummy.shape)
+            dummy = self.bn1(dummy)
+            print(dummy.shape)
+            dummy = F.leaky_relu(dummy,0.2)
+            print(dummy.shape)
+            print("---------------")
+            
+
+            dummy = self.conv2(dummy)
+            print(dummy.shape)
+            dummy = self.bn2(dummy)
+            print(dummy.shape)
+            dummy = F.leaky_relu(dummy,0.2)
+            print(dummy.shape)
+            print("---------------")
+
+            dummy = self.conv3(dummy)
+            print(dummy.shape)
+            dummy = self.bn3(dummy)
+            print(dummy.shape)
+            dummy = F.leaky_relu(dummy,0.2)
+            print(dummy.shape)
+            print("---------------")
+
+            dummy = self.conv4(dummy)
+            print(dummy.shape)
+            dummy = self.bn4(dummy)
+            print(dummy.shape)
+            dummy = F.leaky_relu(dummy,0.2)
+            print(dummy.shape)
+            print("---------------")
+
+            output = F.sigmoid(self.conv5(dummy))
+            print(dummy.shape)
+            print("---------------")
+            del dummy
 
 
 # %%
